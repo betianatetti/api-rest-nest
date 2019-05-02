@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, NotFoundException, Res, HttpStatus } from '@nestjs/common';
 import { CreateTaskDto } from "./dto/create-task.dto"
 import { TasksService } from "./tasks.service";
 import { Task } from "./interfaces/task";
@@ -14,9 +14,11 @@ export class TasksController {
         return this.taskService.getTasks();
     }
 
-    @Get(':taskId')
-    getTask(@Param('taskId') taskId:string){
-        return this.taskService.getTask(taskId);
+    @Get('/:taskId')
+    async getTask(@Res() res,@Param('taskId') taskId){
+        const task = await this.taskService.getTask(taskId);
+        if(!task) throw new NotFoundException('Task does not exist!');
+        return res.status(HttpStatus.OK).json(task);
     }
 
     @Post()
@@ -24,16 +26,24 @@ export class TasksController {
         return this.taskService.createTask(task)
     }
 
-    @Delete(':id')
-    deleteTask(@Param('id') id): string{
-        return `Deleting a task number: ${id}`;
+    @Delete(':taskId')
+    async deleteTask(@Res() res, @Param('taskId') taskId){
+        const taskDeleted = await this.taskService.deleteTask(taskId);
+        if (!taskDeleted) throw new NotFoundException('Task does not exist!');
+        return res.status(HttpStatus.OK).json({
+            message: 'Task Deleted Successfully',
+            taskDeleted
+        });
     }
 
-    @Put(':id')
-    updateTask(@Body() task:CreateTaskDto, @Param('id') id): string {
-        console.log(task)
-        console.log(id)
-        return "Updating a task";
+    @Put(':taskId')
+    async updateTask(@Res() res, @Body() task:CreateTaskDto, @Param('taskId') taskId) {
+        const updatedTask = await this.taskService.updateTask(taskId, task);
+        if(!updatedTask) throw new NotFoundException('Task does not exist!');
+        return res.status(HttpStatus.OK).json({
+            message: 'Task Updated Successfully',
+            updatedTask
+        });
     }
 
 }
