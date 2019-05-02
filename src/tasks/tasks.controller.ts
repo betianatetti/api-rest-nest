@@ -22,8 +22,8 @@ export class TasksController {
     }
 
     @Post()
-    createTask(@Body() task: CreateTaskDto): Promise<Task>{
-        return this.taskService.createTask(task)
+    async createTask(@Body() task: CreateTaskDto): Promise<Task>{
+        return await this.taskService.createTask(task)
     }
 
     @Delete(':taskId')
